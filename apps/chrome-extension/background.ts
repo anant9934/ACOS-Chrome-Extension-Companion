@@ -1,13 +1,11 @@
 import { AutonomousContextOperatingSystem, estimateTokens } from "@repo/core"
+import { storage, INITIAL_ANALYTICS, type AnalyticsData } from "~state"
 
 const acos = new AutonomousContextOperatingSystem()
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_RELEVANCE") {
-    // Basic ACOS orchestration for web prompts
-    // We assume 'gpt-4o' as default for ChatGPT, etc.
     const model = inferModel(sender.tab?.url || "")
-    
     acos.orchestrate({
       cpcPacket: {
         task: request.input.prompt,
@@ -20,11 +18,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         reasoning: []
       },
       targetModel: model,
-      taskMode: "debugging" // Default
+      taskMode: "debugging"
     }).then(result => {
       sendResponse(result)
     })
     return true
+  }
+
+  if (request.type === "RECORD_ANALYTICS") {
+    const { originalTokens, optimizedTokens, site, model } = request.data
+    const saved = originalTokens - optimizedTokens
+    
+    storage.get<AnalyticsData>("acos-analytics").then(data => {
+      const current = data || INITIAL_ANALYTICS
+      storage.set("acos-analytics", {
+        totalTokensSaved: current.totalTokensSaved + saved,
+        optimizationsCount: current.optimizationsCount + 1,
+        history: [{ timestamp: Date.now(), saved, site, model }, ...current.history].slice(0, 100)
+      })
+    })
   }
   return true
 })

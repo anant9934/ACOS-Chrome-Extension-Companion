@@ -1,0 +1,55 @@
+{
+  "name": "vscode-extension",
+  "displayName": "AI Context Optimizer",
+  "description": "Optimize code context for LLMs directly in VS Code",
+  "version": "0.0.1",
+  "publisher": "antigravity",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-context-optimizer.optimizeContext",
+        "title": "Optimize AI Context"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-context-optimizer",
+          "title": "AI Context",
+          "icon": "$(zap)"
+        }
+      ]
+    },
+    "views": {
+      "ai-context-optimizer": [
+        {
+          "id": "ai-context-optimizer-sidebar",
+          "name": "Context Builder",
+          "type": "webview"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "tsup src/extension.ts --external vscode",
+    "watch": "tsup src/extension.ts --external vscode --watch",
+    "package": "tsup src/extension.ts --external vscode --minify",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "20.x",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "@repo/core": "workspace:*"
+  }
+}

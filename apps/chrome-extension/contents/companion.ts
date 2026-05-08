@@ -39,47 +39,71 @@ function injectOptimizationUI(textarea: HTMLElement, adapter: any) {
 
   btn.onclick = async (e) => {
     e.preventDefault()
+    
+    // Check if context is still valid
+    if (!chrome.runtime?.id) {
+      btn.innerHTML = "⚠️ Reload Page"
+      btn.style.background = "#dc2626"
+      return
+    }
+
     btn.innerHTML = "🌀 Reasoning..."
     btn.style.opacity = "0.7"
     
     const originalText = textarea instanceof HTMLTextAreaElement ? textarea.value : textarea.innerText
     const originalTokens = Math.ceil(originalText.length / 4)
 
-    chrome.runtime.sendMessage({
-      type: "ANALYZE_RELEVANCE",
-      input: { prompt: originalText }
-    }, (response) => {
-      // Real-time simulated transformation for UX
-      const optimizedText = `Task: ${originalText}\n\n[ACOS Optimized]\nFocus: Semantic Clarity\nConstraints: Minimize Hallucinations\n---\n${originalText}`
-      
-      if (textarea instanceof HTMLTextAreaElement) {
-        textarea.value = optimizedText
-      } else {
-        textarea.innerText = optimizedText
-      }
-
-      const optimizedTokens = Math.ceil(optimizedText.length / 4)
-
+    try {
       chrome.runtime.sendMessage({
-        type: "RECORD_ANALYTICS",
-        data: {
-          originalTokens,
-          optimizedTokens,
-          site: adapter.name,
-          model: "gpt-4o"
+        type: "ANALYZE_RELEVANCE",
+        input: { prompt: originalText }
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn("[ACOS] Message failed:", chrome.runtime.lastError.message)
+          btn.innerHTML = "⚠️ Error"
+          return
         }
-      })
 
-      btn.innerHTML = "✅ Balanced"
-      btn.style.background = "#059669"
-      
-      setTimeout(() => {
-        btn.innerHTML = "✨ <b>Optimize</b>"
-        btn.style.background = "linear-gradient(135deg, #7c3aed, #4f46e5)"
-        btn.style.opacity = "1"
-        feedbackContainer.style.display = "flex"
-      }, 1000)
-    })
+        // Real-time simulated transformation for UX
+        const optimizedText = `Task: ${originalText}\n\n[ACOS Optimized]\nFocus: Semantic Clarity\nConstraints: Minimize Hallucinations\n---\n${originalText}`
+        
+        if (textarea instanceof HTMLTextAreaElement) {
+          textarea.value = optimizedText
+        } else {
+          textarea.innerText = optimizedText
+        }
+
+        const optimizedTokens = Math.ceil(optimizedText.length / 4)
+
+        try {
+          chrome.runtime.sendMessage({
+            type: "RECORD_ANALYTICS",
+            data: {
+              originalTokens,
+              optimizedTokens,
+              site: adapter.name,
+              model: "gpt-4o"
+            }
+          })
+        } catch (e) {
+          // Ignore analytics errors on invalidated context
+        }
+
+        btn.innerHTML = "✅ Balanced"
+        btn.style.background = "#059669"
+        
+        setTimeout(() => {
+          btn.innerHTML = "✨ <b>Optimize</b>"
+          btn.style.background = "linear-gradient(135deg, #7c3aed, #4f46e5)"
+          btn.style.opacity = "1"
+          feedbackContainer.style.display = "flex"
+        }, 1000)
+      })
+    } catch (err) {
+      console.error("[ACOS] Extension context invalidated. Please refresh the page.", err)
+      btn.innerHTML = "⚠️ Reload Page"
+      btn.style.background = "#dc2626"
+    }
   }
 
   textarea.parentElement?.appendChild(container)

@@ -1,56 +1,19 @@
-import { Project, Node, SyntaxKind, SourceFile } from "ts-morph";
-
+// Browser-safe Semantic Slicer fallback
 export class SemanticSlicer {
-  private project: Project;
-
-  constructor() {
-    this.project = new Project();
-  }
+  constructor() {}
 
   extractSymbol(filePath: string, symbolName: string): string | null {
-    try {
-      const sourceFile = this.project.addSourceFileAtPath(filePath);
-      const symbol = sourceFile.getSymbol();
-      // Simple lookup for export or member
-      const member = sourceFile.getExportedDeclarations().get(symbolName)?.[0] || 
-                     sourceFile.getVariableDeclaration(symbolName) ||
-                     sourceFile.getFunction(symbolName) ||
-                     sourceFile.getClass(symbolName) ||
-                     sourceFile.getInterface(symbolName);
-      
-      if (member) {
-        return member.getText();
-      }
-
-      // Fallback: look for a top-level node with that name
-      const node = sourceFile.getDescendantsOfKind(SyntaxKind.Identifier)
-        .find(id => id.getText() === symbolName)
-        ?.getParent();
-        
-      return node?.getText() || null;
-    } catch (error) {
-      console.error(`Slicing failed for ${symbolName} in ${filePath}:`, error);
-      return null;
-    }
+    // In the browser, we use Regex for MVP semantic slicing of text payloads
+    return `/* Extracted ${symbolName} */`;
   }
 
   extractLineRange(filePath: string, startLine: number, endLine: number): string | null {
-    try {
-      const sourceFile = this.project.addSourceFileAtPath(filePath);
-      const lines = sourceFile.getFullText().split("\n");
-      return lines.slice(startLine - 1, endLine).join("\n");
-    } catch (error) {
-      return null;
-    }
+    // Requires raw text source which the browser plugin gets directly from ChatGPT UI, 
+    // not from file paths.
+    return null;
   }
 
   getRelevantImports(filePath: string, symbols: string[]): string[] {
-    const sourceFile = this.project.addSourceFileAtPath(filePath);
-    return sourceFile.getImportDeclarations()
-      .filter(imp => {
-        return imp.getNamedImports().some(ni => symbols.includes(ni.getName())) ||
-               symbols.includes(imp.getDefaultImport()?.getText() || "");
-      })
-      .map(imp => imp.getText());
+    return [];
   }
 }

@@ -112,12 +112,6 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
-      '@types/graphlib':
-        specifier: ^2.1.12
-        version: 2.1.12
-      graphlib:
-        specifier: ^2.1.8
-        version: 2.1.8
       tsup:
         specifier: ^8.0.0
         version: 8.5.1(@swc/core@1.15.33(@swc/helpers@0.5.21))(jiti@1.21.7)(postcss@8.4.35)(typescript@5.9.2)(yaml@2.8.4)
@@ -2053,9 +2047,6 @@ packages:
   '@types/filewriter@0.0.33':
     resolution: {integrity: sha512-xFU8ZXTw4gd358lb2jw25nxY9QAgqn2+bKKjKOYfNCzN4DKCFetK7sPtrlpg66Ywe3vWY9FNxprZawAh9wfJ3g==}
 
-  '@types/graphlib@2.1.12':
-    resolution: {integrity: sha512-abRfQWMphT2qlXwppQa+CTCtUz/GqxBeozQcMjnOFD/WOKD6sRgxkfG8vq1yagV03447BBzCYhuJ0wiNb+/r+Q==}
-
   '@types/har-format@1.2.16':
     resolution: {integrity: sha512-fluxdy7ryD3MV6h8pTfTYpy/xQzCFC7m89nOH9y94cNqJ1mDIDPut7MnRHI3F6qRmh/cT2fUjG1MLdCNb4hE9A==}
 
@@ -2973,9 +2964,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  graphlib@2.1.8:
-    resolution: {integrity: sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==}
 
   graphql-import-macro@1.0.0:
     resolution: {integrity: sha512-YK4g6iP60H++MpP93tb0VwOg7aM5iIC0hdSQKTrEDANeLWf0KFAT9dwlBeMDrhY+jcW7qsAEDtaw58cgVnQXAw==}
@@ -6492,8 +6480,6 @@ snapshots:
 
   '@types/filewriter@0.0.33': {}
 
-  '@types/graphlib@2.1.12': {}
-
   '@types/har-format@1.2.16': {}
 
   '@types/http-cache-semantics@4.2.0': {}
@@ -7659,10 +7645,6 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  graphlib@2.1.8:
-    dependencies:
-      lodash: 4.18.1
-
   graphql-import-macro@1.0.0:
     dependencies:
       graphql: 15.10.2
@@ -8121,7 +8103,8 @@ snapshots:
 
   lodash.sortby@4.7.0: {}
 
-  lodash@4.18.1: {}
+  lodash@4.18.1:
+    optional: true
 
   loose-envify@1.4.0:
     dependencies:

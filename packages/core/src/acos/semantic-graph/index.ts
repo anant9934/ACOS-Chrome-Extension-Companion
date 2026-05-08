@@ -1,11 +1,57 @@
-import { Graph } from "graphlib";
 import { SemanticNode, SemanticEdge } from "../types";
+
+// Native implementation of a directed graph to replace graphlib
+// This ensures 100% compatibility with Chrome Extension Service Workers
+// and removes the 'window is not defined' crash caused by legacy UMD fallbacks.
+export class Graph {
+  private nodes = new Map<string, any>();
+  private edges = new Map<string, Map<string, any>>();
+
+  setNode(id: string, value: any = {}) {
+    this.nodes.set(id, value);
+    if (!this.edges.has(id)) {
+      this.edges.set(id, new Map());
+    }
+  }
+
+  setEdge(v: string, w: string, value: any = {}) {
+    if (!this.edges.has(v)) this.edges.set(v, new Map());
+    this.edges.get(v)!.set(w, value);
+    if (!this.nodes.has(w)) this.setNode(w);
+  }
+
+  node(id: string) {
+    return this.nodes.get(id);
+  }
+
+  outEdges(v: string) {
+    const out = this.edges.get(v);
+    if (!out) return [];
+    return Array.from(out.keys()).map(w => ({ v, w }));
+  }
+
+  edge(e: { v: string, w: string }) {
+    return this.edges.get(e.v)?.get(e.w);
+  }
+
+  nodeCount() {
+    return this.nodes.size;
+  }
+
+  edgeCount() {
+    let count = 0;
+    for (const out of this.edges.values()) {
+      count += out.size;
+    }
+    return count;
+  }
+}
 
 export class SemanticGraphEngine {
   private graph: Graph;
 
   constructor() {
-    this.graph = new Graph({ directed: true });
+    this.graph = new Graph();
   }
 
   addNode(node: SemanticNode) {
@@ -17,7 +63,7 @@ export class SemanticGraphEngine {
   }
 
   getRelevanceSubGraph(startNodeId: string, depth: number = 3): Graph {
-    const subGraph = new Graph({ directed: true });
+    const subGraph = new Graph();
     const visited = new Set<string>();
     const queue = [{ id: startNodeId, d: 0 }];
 

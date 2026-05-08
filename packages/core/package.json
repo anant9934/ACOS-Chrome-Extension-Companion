@@ -21,8 +21,6 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/graphlib": "^2.1.12",
-    "graphlib": "^2.1.8",
     "tsup": "^8.0.0"
   }
 }

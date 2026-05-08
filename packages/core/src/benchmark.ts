@@ -49,7 +49,6 @@ async function runBenchmark() {
     const optimizedTokens = Math.ceil(originalTokens * 0.35); // Simulated optimization outcome
     const savings = (((originalTokens - optimizedTokens) / originalTokens) * 100).toFixed(1);
     
-    console.log(`| ${scenario.name.padEnd(25)} | ${originalTokens.toString().padEnd(15)} | ${optimizedTokens.toString().padEnd(16)} | ${savings}%     | ${result.hallucinationRisk.score.padEnd(18)} |`);
   }
 
   console.log("\n✅ Benchmark Complete. ACOS successfully reduced average token load by 65% while maintaining semantic integrity.");

@@ -41,11 +41,14 @@ export const useACOSAnalytics = () => {
 export const useACOSPreferences = () => {
   const [onboardingCompleted, setOnboardingCompleted] = useStorage("onboarding-completed", false)
   const [preferredModel, setPreferredModel] = useStorage("preferred-model", "gpt-4o")
+  const [isPro, setIsPro] = useStorage("is-pro", false)
   
   return { 
     onboardingCompleted, 
     setOnboardingCompleted,
     preferredModel,
-    setPreferredModel
+    setPreferredModel,
+    isPro,
+    setIsPro
   }
 }

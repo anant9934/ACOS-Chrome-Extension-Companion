@@ -4,7 +4,7 @@ import "./style.css"
 
 function SidePanel() {
   const { data: analytics } = useACOSAnalytics()
-  const { onboardingCompleted, preferredModel } = useACOSPreferences()
+  const { onboardingCompleted, preferredModel, isPro } = useACOSPreferences()
 
   if (!onboardingCompleted) {
     return <Onboarding />
@@ -17,7 +17,9 @@ function SidePanel() {
           <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-purple-900/20">A</div>
           <h1 className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Companion</h1>
         </div>
-        <div className="px-2 py-1 bg-slate-800 rounded text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-slate-700">PRO</div>
+        <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest border ${isPro ? 'bg-purple-600 text-white border-purple-500' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+          {isPro ? 'PRO' : 'FREE'}
+        </div>
       </header>
 
       <div className="flex-1 space-y-6 overflow-y-auto no-scrollbar">
@@ -72,7 +74,7 @@ function SidePanel() {
           <section className="space-y-3">
             <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Recent Optimizations</h2>
             <div className="space-y-2">
-              {analytics.history.slice(0, 5).map((entry, i) => (
+              {analytics.history.slice(0, 3).map((entry, i) => (
                 <div key={i} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-800/50 text-[10px]">
                   <div className="flex flex-col">
                     <span className="text-slate-300 font-bold">{entry.site}</span>
@@ -85,6 +87,12 @@ function SidePanel() {
               ))}
             </div>
           </section>
+        )}
+
+        {!isPro && (
+          <button className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-black text-sm shadow-xl shadow-purple-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            Upgrade to Pro • $12/mo
+          </button>
         )}
       </div>
 

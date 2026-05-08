@@ -1,15 +1,13 @@
-import { get_encoding } from "@dqbd/tiktoken";
+import { getEncoding } from "js-tiktoken";
 
 /**
- * Token calculation logic using tiktoken.
+ * Token calculation logic using js-tiktoken (Pure JS, safe for Chrome Extensions).
  */
 export function estimateTokens(text: string): number {
   try {
-    const encoding = get_encoding("cl100k_base");
+    const encoding = getEncoding("cl100k_base");
     const tokens = encoding.encode(text);
-    const count = tokens.length;
-    encoding.free();
-    return count;
+    return tokens.length;
   } catch (error) {
     console.error("Token estimation failed:", error);
     // Fallback: roughly 4 chars per token

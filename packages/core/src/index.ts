@@ -6,3 +6,4 @@ export * from "./cre";
 export * from "./cpc";
 export * from "./acis";
 export * from "./acos";
+export * from "./cpc/analyzer";

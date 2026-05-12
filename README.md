@@ -70,7 +70,7 @@ cd token-optimization-extension
 npm install
 
 # Build the core engine and extension
-pnpm build
+npm build
 ```
 
 ### 2. Adding the Extension to Chrome

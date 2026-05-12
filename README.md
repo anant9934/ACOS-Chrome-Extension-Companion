@@ -67,7 +67,7 @@ git clone https://github.com/anant9934/token-optimization-extension.git
 cd token-optimization-extension
 
 # Install dependencies
-pnpm install
+npm install
 
 # Build the core engine and extension
 pnpm build

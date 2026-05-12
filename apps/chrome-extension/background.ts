@@ -1,52 +1,139 @@
 import "./shim"
-import { AutonomousContextOperatingSystem, estimateTokens } from "@repo/core"
-import { storage, INITIAL_ANALYTICS, type AnalyticsData } from "~state"
+import { epogOrchestrator, type EPOGInput } from "@repo/core"
+import { storage, INITIAL_ANALYTICS, type AnalyticsData, type AuditEntry } from "~state"
 
-const acos = new AutonomousContextOperatingSystem()
+// ─── Message Types ────────────────────────────────────────────────────────────
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === "ANALYZE_RELEVANCE") {
-    const model = inferModel(sender.tab?.url || "")
-    acos.orchestrate({
-      cpcPacket: {
-        task: request.input.prompt,
-        optimizedContext: { critical: [], important: [], supplemental: [] },
-        excluded: [],
-        semanticSummaries: [],
-        estimatedTokens: estimateTokens(request.input.prompt),
-        compressionRatio: 1,
-        hallucinationRisk: { score: "low", factors: [], recommendations: [] },
-        reasoning: []
-      },
-      targetModel: model,
-      taskMode: "debugging"
-    }).then(result => {
-      sendResponse(result)
+interface EPOGOptimizeMessage {
+  type: "EPOG_OPTIMIZE"
+  payload: {
+    prompt: string
+    model: string
+    sessionId: string
+  }
+}
+
+interface RecordAnalyticsMessage {
+  type: "RECORD_ANALYTICS"
+  data: {
+    originalTokens: number
+    optimizedTokens: number
+    reductionPercent: number
+    site: string
+    model: string
+    governanceScore?: number
+  }
+}
+
+interface GetAuditLogMessage {
+  type: "GET_AUDIT_LOG"
+}
+
+interface GetStatsMessage {
+  type: "GET_STATS"
+}
+
+type IncomingMessage =
+  | EPOGOptimizeMessage
+  | RecordAnalyticsMessage
+  | GetAuditLogMessage
+  | GetStatsMessage
+
+// ─── Message Handler ──────────────────────────────────────────────────────────
+
+chrome.runtime.onMessage.addListener((request: IncomingMessage, sender, sendResponse) => {
+
+  // ── EPOG Optimization Pipeline ───────────────────────────────────────────────
+  if (request.type === "EPOG_OPTIMIZE") {
+    const { prompt, model, sessionId } = request.payload
+    const input: EPOGInput = { prompt, targetModel: model, sessionId }
+
+    epogOrchestrator
+      .optimize(input)
+      .then(async (output) => {
+        // Persist transformation record to storage for audit replay
+        try {
+          const existing = await storage.get<AuditEntry[]>("epog-audit-log") ?? []
+          const entry: AuditEntry = {
+            sessionId: output.sessionId,
+            timestamp: Date.now(),
+            originalTokens: output.originalTokens,
+            optimizedTokens: output.optimizedTokens,
+            reductionPercent: output.reductionPercent,
+            intent: output.intent,
+            hallucinationRisk: output.hallucinationRisk,
+            integrityScore: output.integrityScore,
+            governanceScore: output.governanceScore,
+            isSafeToSubmit: output.isSafeToSubmit,
+            piiDetected: output.piiDetected,
+            warnings: output.warnings,
+            stages: output.pipelineStages,
+          }
+          const updated = [entry, ...existing].slice(0, 200)
+          await storage.set("epog-audit-log", updated)
+        } catch { /* Non-critical — don't fail the optimization */ }
+
+        sendResponse({ success: true, output })
+      })
+      .catch((err) => {
+        console.error("[EPOG-M] Pipeline error:", err)
+        sendResponse({ success: false, error: String(err) })
+      })
+
+    return true // Keep channel open for async response
+  }
+
+  // ── Analytics Recording ──────────────────────────────────────────────────────
+  if (request.type === "RECORD_ANALYTICS") {
+    const { originalTokens, optimizedTokens, site, model, reductionPercent, governanceScore } = request.data
+    const saved = originalTokens - optimizedTokens
+
+    storage.get<AnalyticsData>("acos-analytics").then(data => {
+      const current = data ?? INITIAL_ANALYTICS
+      const updated: AnalyticsData = {
+        totalTokensSaved: current.totalTokensSaved + saved,
+        optimizationsCount: current.optimizationsCount + 1,
+        avgReductionPercent: Math.round(
+          (current.avgReductionPercent * current.optimizationsCount + (reductionPercent ?? 0)) /
+          (current.optimizationsCount + 1)
+        ),
+        avgGovernanceScore: Math.round(
+          (current.avgGovernanceScore * current.optimizationsCount + (governanceScore ?? 100)) /
+          (current.optimizationsCount + 1)
+        ),
+        history: [
+          {
+            timestamp: Date.now(),
+            saved,
+            reductionPercent: reductionPercent ?? 0,
+            site,
+            model,
+          },
+          ...current.history
+        ].slice(0, 200),
+      }
+      storage.set("acos-analytics", updated)
+    })
+
+    return false
+  }
+
+  // ── Audit Log Retrieval ──────────────────────────────────────────────────────
+  if (request.type === "GET_AUDIT_LOG") {
+    storage.get<AuditEntry[]>("epog-audit-log").then(entries => {
+      sendResponse({ entries: entries ?? [] })
     })
     return true
   }
 
-  if (request.type === "RECORD_ANALYTICS") {
-    const { originalTokens, optimizedTokens, site, model } = request.data
-    const saved = originalTokens - optimizedTokens
-    
-    storage.get<AnalyticsData>("acos-analytics").then(data => {
-      const current = data || INITIAL_ANALYTICS
-      storage.set("acos-analytics", {
-        totalTokensSaved: current.totalTokensSaved + saved,
-        optimizationsCount: current.optimizationsCount + 1,
-        history: [{ timestamp: Date.now(), saved, site, model }, ...current.history].slice(0, 100)
-      })
-    })
+  // ── Stats ────────────────────────────────────────────────────────────────────
+  if (request.type === "GET_STATS") {
+    const ledgerStats = epogOrchestrator.ledgerStore.getStats()
+    sendResponse({ stats: ledgerStats })
+    return true
   }
-  return true
+
+  return false
 })
 
-function inferModel(url: string): string {
-  if (url.includes("openai")) return "gpt-4o"
-  if (url.includes("claude")) return "claude-3-sonnet"
-  if (url.includes("gemini")) return "gemini-1.5-pro"
-  return "gpt-4o"
-}
-
-console.log("ACOS Universal Companion Background Worker Initialized")
+console.log("[EPOG-M] Background service worker initialized v1.0.0")

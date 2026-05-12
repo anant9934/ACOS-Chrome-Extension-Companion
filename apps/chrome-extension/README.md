@@ -1,33 +1,56 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# 🛰️ ACOS Chrome Extension Companion
 
-## Getting Started
+This is the production-grade intelligence layer for the **Autonomous Context Operating System (ACOS)**. It intercepts prompts on major AI platforms to perform real-time semantic optimization.
 
-First, run the development server:
+---
+
+## 🚀 Getting Started
+
+### 1. Development Mode
+Run the development server to enable hot-reloading:
 
 ```bash
 pnpm dev
-# or
-npm run dev
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+### 2. Loading into Chrome
+1. Open Chrome and go to `chrome://extensions`.
+2. Enable **Developer Mode**.
+3. Click **Load Unpacked**.
+4. Select the `apps/chrome-extension/build/chrome-mv3-dev` directory.
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+---
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+## 🛠️ Build for Production
 
-## Making production build
-
-Run the following:
+To create a production-optimized bundle:
 
 ```bash
 pnpm build
-# or
-npm run build
 ```
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+The output will be located in `build/chrome-mv3-prod`.
 
-## Submit to the webstores
+---
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+## ✨ Features
+
+- **Multi-Platform Support**: Works on ChatGPT, Claude, Gemini, DeepSeek, and Perplexity.
+- **Context Relevance Engine (CRE)**: AST-driven analysis of your code prompts.
+- **Command Palette**: `Cmd/Ctrl + Shift + K` to trigger advanced orchestration.
+- **PII Shield**: Automatic detection of secrets and sensitive data.
+- **Token Analytics**: Real-time tracking of token savings and efficiency.
+
+---
+
+## 🏗️ Architecture
+
+- **`contents/companion.ts`**: The main content script that injects the ACOS intelligence layer.
+- **`background.ts`**: Handles the heavy lifting of the optimization pipeline via the `@repo/core` library.
+- **`sidepanel.tsx`**: Advanced analytics and audit logs.
+- **`popup.tsx`**: Quick settings and status overview.
+
+---
+
+[Return to Root README](../../README.md)
+
